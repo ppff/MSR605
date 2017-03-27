@@ -85,17 +85,18 @@ void MSR605::init()
 	this->sendReset();
 }
 /*-------------------------------------------------------------------------------------*/
-int MSR605::write_bytes(char *buf, int num)
+int MSR605::write_bytes(std::string const & buffer)
 {
 	int ret = 0;
 	
 	if(!isConnected()) throw "Unable to send data: Not connected to device.";
-	ret = write(this->fd, buf, num);
+	ret = write(this->fd, buffer.c_str(), buffer.size());
 	if(ret <= 0) throw "Unable to send data: write() failed";
 
 	#ifdef DEBUG
 	printf("Sent Data(%d bytes): ", num);
-	for(int x = 0; x < num; x++) printf("%02x ", buf[x]);
+	for(unsigned i = 0; i < buffer.size(); i++) 
+		printf("%02x ", buffer[i]);
 	printf("\n");
 	#endif
 	
@@ -266,7 +267,7 @@ magnetic_stripe_t *MSR605::readCard_raw(char track1_format, char track2_format, 
 	this->setBPC(track1_format, track2_format, track3_format);
 	
 	
-	write_bytes(MSR_READ_RAW, 2);
+	write_bytes(MSR_READ_RAW);
 	
 	/* check for ack */
 	read_bytes((unsigned char*)&buf, 2);
@@ -331,7 +332,7 @@ magnetic_stripe_t *MSR605::readCard_iso(char track1_format, char track2_format, 
 	this->setBPC(track1_format, track2_format, track3_format);
 	
 	
-	write_bytes(MSR_READ_ISO, 2);
+	write_bytes(MSR_READ_ISO);
 	
 	/* check for ack */
 	read_bytes((unsigned char*)&buf, 2);
@@ -390,7 +391,7 @@ void MSR605::getLeadingZeros(leading_zeros_t *zeros)
 	if(!isConnected()) throw "Unable to check leading zeros: Not connected to device.";
 	if(zeros == NULL) throw "Invalid leading zeros structure passed";
 	
-	write_bytes(MSR_CHECK_ZEROS, 2);
+	write_bytes(MSR_CHECK_ZEROS);
 	
 	if(read_bytes((unsigned char*)&buf, 3) != 3) throw "Unable to check leading zeros: invalid response";
 	if(memcmp(buf, "\x1b", 1) != 0) throw "Unable to check leading zeros: bad resposne";
@@ -408,7 +409,7 @@ void MSR605::decode_7bit(unsigned char *buf, unsigned int len, unsigned char * &
 	
 	test = (char*)outBuf;
 
-	for(int y = 0; y < (len/7); y++) {
+	for(unsigned y = 0; y < (len/7); y++) {
 	
 	if(*buf == 0x00 || buf[1] == 0x00) break;
 	
@@ -439,7 +440,7 @@ void MSR605::decode_5bit(unsigned char *buf, unsigned int len, unsigned char * &
 	
 	test = (char*)outBuf;
 	
-	for(int y = 0; y < (len/5); y++) {
+	for(unsigned y = 0; y < (len/5); y++) {
 	
 	if(*buf == 0x00 || buf[1] == 0x00) break;
 	
@@ -463,19 +464,18 @@ void MSR605::decode_5bit(unsigned char *buf, unsigned int len, unsigned char * &
 
 void MSR605::decode_8bit(unsigned char *buf, unsigned int len, unsigned char * &outBuf, unsigned int &outLen)
 {
-	//unsigned int bytes = len;
-	unsigned int bytes = (len * 8) /8;
+
 	outBuf = (unsigned char *)malloc(len);
 	unsigned int tempLen = 0;
 	//char *test;
 	//unsigned int *len_ptr=len;
 	char *test;	
 	test=(char*)outBuf;
-	for(int y = 0; y < (len/8); y++) {
+	for(unsigned y = 0; y < (len/8); y++) {
 	if(*buf == 0x00 || buf[1] == 0x00) break;
 	
-	test[0] =buf[0]; 
-	test[1] =buf[1]; 
+	test[0] = buf[0]; 
+	test[1] = buf[1]; 
 	test[2] = buf[2];  
 	test[3] = buf[3]; 
 	test[4] = buf[4]; 
@@ -519,7 +519,7 @@ bool MSR605::setBPC(char track1, char track2, char track3)
 	memcpy(&bpc_str[4], (void*)&track3, 1);
 	
 	
-	write_bytes(bpc_str, 5);
+	write_bytes(bpc_str);
 	
 	if(read_bytes((unsigned char*)&ack, 5) != 5) throw "Unable to set BPC: invalid response";
 	if(memcmp(ack, MSR_SET_BPC_ACK, 5) == 0) return true;
@@ -535,7 +535,7 @@ bool MSR605::commTest()
 
 	if(!isConnected()) throw "Unable to perform comm test: not connected";
 	
-	write_bytes(MSR_COMM_TEST, 2);
+	write_bytes(MSR_COMM_TEST);
 	printf("Comm Test Sent...\n");	
 	//alarm(6);
 	if(read_bytes((unsigned char*)&ack, 2) != 2) throw "Comm test failed: invalid response";
@@ -549,47 +549,47 @@ bool MSR605::commTest()
 void MSR605::setRedLEDOn()
 {
 	if(!isConnected()) throw "Unable to turn Red LED on: not connected";
-	write_bytes(MSR_RED_LED_ON, 2);
+	write_bytes(MSR_RED_LED_ON);
 }
 void MSR605::setGreenLEDOn()
 {
 	if(!isConnected()) throw "Unable to turn Green LED on: not connected";
-	write_bytes(MSR_GREEN_LED_ON, 2);
+	write_bytes(MSR_GREEN_LED_ON);
 }
 void MSR605::setYellowLEDOn()
 {
 	if(!isConnected()) throw "Unable to turn Yellow LED on: not connected";
-	write_bytes(MSR_YELLOW_LED_ON, 2);
+	write_bytes(MSR_YELLOW_LED_ON);
 }
 /*-------------------------------------------------------------------------------------*/
 void MSR605::setAllLEDOn()
 {
 	if(!isConnected()) throw "Unable to turn all LEDs on: not connected";
-	write_bytes(MSR_ALL_LIGHTS_ON, 2);
+	write_bytes(MSR_ALL_LIGHTS_ON);
 }
 /*-------------------------------------------------------------------------------------*/
 void MSR605::setAllLEDOff()
 {
 	if(!isConnected()) throw "Unable to turn all LEDs off: not connected";
-	write_bytes(MSR_ALL_LIGHTS_OFF, 2);
+	write_bytes(MSR_ALL_LIGHTS_OFF);
 }
 /*-------------------------------------------------------------------------------------*/
 void MSR605::sendReset()
 {
 	if(!isConnected()) throw "Unable to send reset: not connected";
 	
-	write_bytes(MSR_RESET, 2);
+	write_bytes(MSR_RESET);
 }
 /*-------------------------------------------------------------------------------------*/
 /*-------------------------------------------------------------------------------------*/
-void MSR605::connect(char *devName)
+void MSR605::connect(std::string devName)
 {
 	struct termios options;
 	
-	if(devName == NULL) throw "Invalid device name specified.";
+	if(devName.empty()) throw "Invalid device name specified.";
 	
 	/* open connection to device */
-	this->fd = open(devName, O_RDWR | O_NOCTTY);
+	this->fd = open(devName.c_str(), O_RDWR | O_NOCTTY);
 	if(this->fd < 0) throw "Unable to open connection to device.";
 	
 	/* get options for terminal session */
@@ -612,7 +612,7 @@ void MSR605::connect(char *devName)
 void MSR605::getModel()
 {
 	char *model = (char *)malloc(sizeof(char *) * 3);
-	write_bytes("\x1b\x74", 2);
+	write_bytes("\x1b\x74");
 	read_bytes((unsigned char*)model, 3);
 	model[2]='\0';
 	memmove (model, model+1, strlen (model));
@@ -624,7 +624,7 @@ void MSR605::getModel()
 void MSR605::getFirmware()
 { 
 	char *firmware= (char *)malloc(sizeof(char *) * 9);
-	write_bytes("\x1b\x76", 2);
+	write_bytes("\x1b\x76");
 	read_bytes((unsigned char*)firmware, 9);
 	firmware[9]='\0';
 	memmove (firmware, firmware+1, strlen (firmware));

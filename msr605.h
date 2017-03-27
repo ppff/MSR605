@@ -55,16 +55,16 @@
 #define TRACK_8BIT 8
 #define TRACK_5BIT 5
 
-
+#include <string>
 using namespace std;
 
-typedef struct magnetic_stripe_t
+struct magnetic_stripe_t
 {
 	unsigned char *track1, *track2, *track3;
 	unsigned int t1_len, t2_len, t3_len;
 };
 
-typedef struct leading_zeros_t 
+struct leading_zeros_t 
 {
 	char t1t3;
 	char t2;
@@ -76,13 +76,13 @@ class MSR605
 		MSR605();
 		~MSR605();
 		
-		void connect(char *devName); /* throws an exception if unable to connect */
+		void connect(std::string devName); /* throws an exception if unable to connect */
 		bool isConnected();
 		void disconnect();
 		
 		/* read/write */
 		int read_bytes(unsigned char *buf, int num);
-		int write_bytes(char *buf, int num);
+		int write_bytes(std::string const & buffer);
 		
 		/* card commands */
 		magnetic_stripe_t *readCard_raw(char track1_format, char track2_format, char track3_format);

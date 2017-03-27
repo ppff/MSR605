@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "msr605.h"
+#include <string>
 
 #define DEVICE "/dev/ttyUSB0"
 
@@ -44,7 +45,7 @@ void printTrack(const char *msg, unsigned char *buf, unsigned int len)
 {
 	printf("size: %d",len);
 	printf("[%s]: ", msg);
-	for(int x = 0; x < len; x++) printf("%02x", buf[x]);
+	for(unsigned x = 0; x < len; x++) printf("%02x", buf[x]);
 	printf("\n");
 }
 
@@ -52,7 +53,7 @@ void printTrackiso(const char *msg, unsigned char *buf, unsigned int len)
 {
 	printf("size: %d",len);
 	printf("[%s]: ", msg);
-	for(int x = 0; x < len; x++) printf("%c", buf[x]);
+	for(unsigned x = 0; x < len; x++) printf("%c", buf[x]);
 	printf("\n");
 }
 
